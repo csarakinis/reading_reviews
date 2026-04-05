@@ -23,6 +23,8 @@ services:
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production-secret-key}
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend/app:/app/app
     depends_on:
       db:
         condition: service_healthy
@@ -41,6 +43,8 @@ services:
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production-secret-key}
     ports:
       - "3000:3000"
+    volumes:
+      - ./frontend/app:/app/app
     depends_on:
       backend:
         condition: service_healthy

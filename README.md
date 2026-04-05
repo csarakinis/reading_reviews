@@ -39,6 +39,8 @@ docker compose up --build
 
 Then open **http://localhost:3000** in your browser.
 
+> **Hot reload** — changes to files inside `backend/app/` or `frontend/app/` are automatically picked up by the running containers (via a bind mount + uvicorn `--reload`). No restart is needed.
+
 The backend API (with auto-generated docs) is available at **http://localhost:8000/docs**.
 
 ### Stop
