@@ -1,3 +1,12 @@
+"""
+models/book.py — SQLAlchemy ORM model for a book in a reading list.
+
+ReadingStatus is an enum column; its values drive the filter tabs in the UI.
+
+TODO: add fields like cover_image_url, notes (list of timestamped notes),
+      page_progress (current page), or a tags many-to-many relationship.
+TODO: add a Series model and a foreign key here if you want series tracking.
+"""
 import enum
 import uuid
 from datetime import date, datetime

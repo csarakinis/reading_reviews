@@ -1,4 +1,22 @@
+"""
+routers/pages.py — server-rendered HTML page handlers.
+
+Each route:
+  1. Reads the session cookie via get_session_id (creates one if absent).
+  2. Calls the backend API through APIClient (forwards the cookie).
+  3. Renders a Jinja2 template with the response data.
+
+Adding a new page is three steps:
+  a. Add a route function here.
+  b. Create the matching template in app/templates/.
+  c. Add a nav link to app/templates/base.html if needed.
+
+TODO: add a /profile page for updating display_name.
+TODO: add a /books/search page that calls the (future) search endpoint.
+TODO: add a /books/import page for uploading a CSV reading list.
+"""
 from typing import Any
+from urllib.parse import quote as url_quote
 
 import httpx
 from fastapi import APIRouter, Cookie, Depends, Form, Request, Response
@@ -196,7 +214,7 @@ def edit_book_submit(
 
     try:
         client.update_book(book_id, book_data)
-        return RedirectResponse(url=f"/books/{book_id}", status_code=303)
+        return RedirectResponse(url=f"/books/{url_quote(book_id, safe='')}", status_code=303)
     except httpx.HTTPStatusError as e:
         book = book_data
         book["id"] = book_id

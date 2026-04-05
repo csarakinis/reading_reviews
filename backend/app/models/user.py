@@ -1,3 +1,13 @@
+"""
+models/user.py — SQLAlchemy ORM model for a reading-list user.
+
+A User is created automatically on first request using the browser session
+cookie as a unique key (no login required).  All books belong to a user.
+
+TODO: add fields like preferred_language, reading_goal_per_year, avatar_url.
+TODO: when authentication is added, replace session_id with hashed password /
+      OAuth provider fields and update routers/deps.py accordingly.
+"""
 import uuid
 from datetime import datetime
 

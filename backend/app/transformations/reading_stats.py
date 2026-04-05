@@ -1,3 +1,13 @@
+"""
+transformations/reading_stats.py — Polars-powered reading statistics.
+
+Takes the raw list of Book ORM objects, converts them to a Polars DataFrame,
+and computes aggregations that would otherwise require multiple SQL queries.
+
+This is the right place to add richer analytics:
+TODO: reading pace (pages per day), streak tracking, year-in-review summary.
+TODO: genre breakdown over time, author diversity metrics.
+"""
 from typing import Any
 
 import polars as pl

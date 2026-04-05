@@ -1,3 +1,12 @@
+"""
+services/user_service.py — database operations for users.
+
+get_or_create_user() is the main entry point: called on every request via
+the get_current_user dependency, it ensures every browser session maps to
+exactly one User row in the database.
+
+TODO: add lookup_by_email / lookup_by_username when authentication is added.
+"""
 import uuid
 
 from sqlalchemy.orm import Session

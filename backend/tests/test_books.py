@@ -130,14 +130,12 @@ def test_get_stats_with_books(client):
 
 
 def test_books_isolated_by_session(client):
+    """Books added in one browser session must not appear in another."""
     client.post("/api/v1/books/", json=SAMPLE_BOOK)
 
-    import httpx
-    from fastapi.testclient import TestClient
-    from app.main import app
-    from app.database import get_db
+    # Simulate a fresh browser by clearing the session cookie.
+    # get_current_user will auto-create a new user with no books.
+    client.cookies.clear()
 
-    second_client = TestClient(app)
-    response = second_client.get("/api/v1/books/")
-    data = response.json()
-    assert data["total"] == 0
+    response = client.get("/api/v1/books/")
+    assert response.json()["total"] == 0

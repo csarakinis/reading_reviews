@@ -1,3 +1,13 @@
+"""
+api_client.py — thin HTTP wrapper for calling the backend API.
+
+Every method maps one-to-one to a backend endpoint, forwards the browser's
+session cookie, and raises httpx.HTTPStatusError on non-2xx responses (caught
+in pages.py).
+
+TODO: add retry logic or a timeout configuration if needed.
+TODO: when the backend grows, add methods for search, export, etc.
+"""
 from typing import Any
 
 import httpx

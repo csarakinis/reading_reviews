@@ -1,3 +1,23 @@
+"""
+routers/books.py — REST endpoints for the reading list.
+
+Pattern for every endpoint:
+  1. Depend on get_current_user so every action is scoped to the caller.
+  2. Call the matching service function (database layer).
+  3. Return a Pydantic schema (automatic JSON serialisation).
+
+Existing endpoints
+------------------
+GET    /api/v1/books/         list books, optional ?status= filter
+POST   /api/v1/books/         add a book
+GET    /api/v1/books/stats    Polars-computed reading statistics
+GET    /api/v1/books/{id}     get one book
+PUT    /api/v1/books/{id}     update a book (status, rating, review …)
+DELETE /api/v1/books/{id}     remove a book
+
+TODO: add GET /api/v1/books/search?q= for title/author search.
+TODO: add GET /api/v1/books/export for CSV download using Polars.
+"""
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 

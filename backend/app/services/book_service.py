@@ -1,3 +1,14 @@
+"""
+services/book_service.py — database operations for books.
+
+Each function takes a SQLAlchemy Session and returns ORM objects.  Keeping
+database logic here (rather than inline in the router) means the router only
+handles HTTP concerns: parsing the request, calling a service function, and
+returning the response.
+
+TODO: add search_books(db, user_id, query) for title/author full-text search.
+TODO: add bulk_import_books(db, user_id, book_list) for CSV/Goodreads import.
+"""
 import uuid
 
 from sqlalchemy.orm import Session
