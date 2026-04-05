@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}Edit: {{ book.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h4 class="mb-0"><i class="bi bi-pencil me-2"></i>Edit Book</h4>
+            </div>
+            <div class="card-body">
+                {% if errors %}
+                <div class="alert alert-danger">
+                    {% for error in errors %}<p class="mb-0">{{ error }}</p>{% endfor %}
+                </div>
+                {% endif %}
+
+                <form action="/books/{{ book.id }}/edit" method="post">
+                    <div class="mb-3">
+                        <label for="title" class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="title" name="title"
+                               value="{{ book.title }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="author" class="form-label fw-semibold">Author <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="author" name="author"
+                               value="{{ book.author }}" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="genre" class="form-label">Genre</label>
+                            <input type="text" class="form-control" id="genre" name="genre"
+                                   value="{{ book.genre or '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="isbn" class="form-label">ISBN</label>
+                            <input type="text" class="form-control" id="isbn" name="isbn"
+                                   value="{{ book.isbn or '' }}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="total_pages" class="form-label">Total Pages</label>
+                            <input type="number" class="form-control" id="total_pages" name="total_pages"
+                                   min="1" value="{{ book.total_pages or '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label fw-semibold">Status</label>
+                            <select class="form-select" id="status" name="status">
+                                {% for key, label in status_labels.items() %}
+                                <option value="{{ key }}" {% if book.status == key %}selected{% endif %}>
+                                    {{ label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="date_started" class="form-label">Date Started</label>
+                            <input type="date" class="form-control" id="date_started" name="date_started"
+                                   value="{{ book.date_started or '' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="date_completed" class="form-label">Date Completed</label>
+                            <input type="date" class="form-control" id="date_completed" name="date_completed"
+                                   value="{{ book.date_completed or '' }}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Rating (1–5)</label>
+                        <select class="form-select" id="rating" name="rating">
+                            <option value="">No rating</option>
+                            {% for i in range(1, 6) %}
+                            <option value="{{ i }}" {% if book.rating == i %}selected{% endif %}>
+                                {{ i }} star{% if i > 1 %}s{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="review" class="form-label">Review</label>
+                        <textarea class="form-control" id="review" name="review" rows="4"
+                                  placeholder="Write your thoughts...">{{ book.review or '' }}</textarea>
+                    </div>
+                    <div class="d-flex justify-content-between mt-3">
+                        <a href="/books/{{ book.id }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

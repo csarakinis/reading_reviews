@@ -1,0 +1,58 @@
+/* ── Global ─────────────────────────────────────────────── */
+body {
+    background-color: #f8f9fa;
+}
+
+/* ── Navbar ──────────────────────────────────────────────── */
+.navbar-brand {
+    font-weight: 700;
+    font-size: 1.4rem;
+}
+
+/* ── Cards ───────────────────────────────────────────────── */
+.card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+    border: none;
+}
+
+/* ── Status badge colours ────────────────────────────────── */
+.badge-want_to_read {
+    background-color: #6c757d;
+}
+
+.badge-reading {
+    background-color: #0d6efd;
+}
+
+.badge-completed {
+    background-color: #198754;
+}
+
+.badge-abandoned {
+    background-color: #dc3545;
+}
+
+/* ── Star ratings ────────────────────────────────────────── */
+.star-filled {
+    color: #ffc107;
+}
+
+.star-empty {
+    color: #dee2e6;
+}
+
+/* ── Footer ──────────────────────────────────────────────── */
+footer {
+    border-top: 1px solid #dee2e6;
+}
+
+/* ── Stats page ──────────────────────────────────────────── */
+.stats-bar-wrapper {
+    display: flex;
+    align-items: center;
+    width: 60%;
+}
+
+.progress-thin {
+    height: 8px;
+}
