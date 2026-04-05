@@ -48,6 +48,7 @@ class Book(Base):
     review: Mapped[str | None] = mapped_column(Text, nullable=True)
     date_started: Mapped[date | None] = mapped_column(Date, nullable=True)
     date_completed: Mapped[date | None] = mapped_column(Date, nullable=True)
+    cover_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     # server_default=func.now() lets the database set these timestamps so they
     # are accurate even if multiple app instances are running.
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

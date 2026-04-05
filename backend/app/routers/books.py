@@ -18,18 +18,60 @@ DELETE /api/v1/books/{id}     remove a book
 TODO: add GET /api/v1/books/search?q= for title/author search.
 TODO: add GET /api/v1/books/export for CSV download using Polars.
 """
+import httpx
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.book import ReadingStatus
+from app.models.book import Book, ReadingStatus
 from app.models.user import User
-from app.schemas.book import BookCreate, BookListResponse, BookResponse, BookUpdate
+from app.schemas.book import BookCreate, BookListResponse, BookResponse, BookUpdate, OLSearchResult
 from app.services.book_service import create_book, delete_book, get_book, get_books, update_book
 from app.transformations.reading_stats import compute_reading_stats
 from app.routers.deps import get_current_user
 
 router = APIRouter(prefix="/books", tags=["books"])
+
+@router.get("/search-ol", response_model=list[OLSearchResult])
+def search_open_library(
+    q: str = Query(..., min_length=3, max_length=100),
+    current_user: User = Depends(get_current_user),
+):
+    """Search Open Library API for books matching the query string."""
+        
+    OL_SEARCH_URL = "https://openlibrary.org/search.json"
+    OL_HEADERS = {"User-Agent": "ReadingReviews (your@email.com)"}
+
+    # Inside the endpoint:
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            resp = client.get(
+                OL_SEARCH_URL,
+                params={
+                    "q": q,
+                    "fields": "title,author_name,cover_i,isbn,number_of_pages_median",
+                    "limit": "10",
+                },
+                headers=OL_HEADERS,
+            )
+            resp.raise_for_status()
+    except httpx.HTTPError:
+        return []
+
+    results = []
+    for doc in resp.json().get("docs", []):
+        cover_i = doc.get("cover_i")
+        isbn_list = doc.get("isbn", [])
+        author_list = doc.get("author_name", [])
+        results.append(OLSearchResult(
+            title=doc.get("title", "Unknown"),
+            author=author_list[0] if author_list else "Unknown",
+            isbn=isbn_list[0] if isbn_list else None,
+            total_pages=doc.get("number_of_pages_median"),
+            cover_url=f"https://covers.openlibrary.org/b/id/{cover_i}-M.jpg" if cover_i else None,
+        ))
+    return results
 
 
 @router.get("/", response_model=BookListResponse)

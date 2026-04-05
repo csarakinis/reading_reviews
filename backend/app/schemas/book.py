@@ -33,6 +33,7 @@ class BookBase(BaseModel):
     status: ReadingStatus = ReadingStatus.WANT_TO_READ
     rating: int | None = None
     review: str | None = None
+    cover_url: str | None = None
     date_started: date | None = None
     date_completed: date | None = None
 
@@ -111,3 +112,11 @@ class BookResponse(BookBase):
 class BookListResponse(BaseModel):
     books: list[BookResponse]
     total: int
+
+
+class OLSearchResult(BaseModel):
+    title: str
+    author: str
+    isbn: str | None = None
+    total_pages: int | None = None
+    cover_url: str | None = None

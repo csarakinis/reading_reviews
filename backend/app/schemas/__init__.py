@@ -1,5 +1,5 @@
 from app.schemas.user import UserRegisterRequest, UserLoginRequest, UserUpdate, UserResponse, UserAuthResponse
-from app.schemas.book import BookBase, BookCreate, BookUpdate, BookResponse, BookListResponse
+from app.schemas.book import BookBase, BookCreate, BookUpdate, BookResponse, BookListResponse, OLSearchResult
 
 __all__ = [
     "UserRegisterRequest",
@@ -12,4 +12,5 @@ __all__ = [
     "BookUpdate",
     "BookResponse",
     "BookListResponse",
+    "OLSearchResult",
 ]
