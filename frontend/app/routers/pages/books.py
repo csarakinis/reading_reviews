@@ -1,13 +1,11 @@
 from urllib.parse import quote as url_quote
 
 import httpx
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.api_client import APIClient
-from app.routers.pages.deps import parse_create_book_form, parse_update_book_form
 from app.routers.pages.common import STATUS_LABELS, make_client, templates
-from app.schemas import BookData
 
 router = APIRouter()
 
@@ -27,11 +25,22 @@ def add_book_form(
 @router.post("/books/add")
 def add_book_submit(
     request: Request,
-    book: BookData = Depends(parse_create_book_form),
+    title: str = Form(...),
+    author: str = Form(...),
+    genre: str = Form(default=""),
+    isbn: str = Form(default=""),
+    total_pages: str = Form(default=""),
+    status: str = Form(default="want_to_read"),
     client: APIClient = Depends(make_client),
 ):
-    book_data = book.for_create()
-
+    book_data = {
+        "title": title,
+        "author": author,
+        "genre": genre,
+        "isbn": isbn,
+        "total_pages": total_pages,
+        "status": status,
+    }
     try:
         client.create_book(book_data)
         return RedirectResponse(url="/", status_code=303)
@@ -64,10 +73,7 @@ def book_detail(
     return templates.TemplateResponse(
         request,
         "book_detail.html",
-        {
-            "book": book,
-            "status_labels": STATUS_LABELS,
-        },
+        {"book": book, "status_labels": STATUS_LABELS},
     )
 
 
@@ -85,11 +91,7 @@ def edit_book_form(
     return templates.TemplateResponse(
         request,
         "edit_book.html",
-        {
-            "book": book,
-            "status_labels": STATUS_LABELS,
-            "errors": [],
-        },
+        {"book": book, "status_labels": STATUS_LABELS, "errors": []},
     )
 
 
@@ -97,22 +99,40 @@ def edit_book_form(
 def edit_book_submit(
     book_id: str,
     request: Request,
-    book: BookData = Depends(parse_update_book_form),
+    title: str = Form(...),
+    author: str = Form(...),
+    genre: str = Form(default=""),
+    isbn: str = Form(default=""),
+    total_pages: str = Form(default=""),
+    status: str = Form(default="want_to_read"),
+    rating: str = Form(default=""),
+    review: str = Form(default=""),
+    date_started: str = Form(default=""),
+    date_completed: str = Form(default=""),
     client: APIClient = Depends(make_client),
 ):
-    book_data = book.for_update()
-
+    book_data = {
+        "title": title,
+        "author": author,
+        "genre": genre,
+        "isbn": isbn,
+        "total_pages": total_pages,
+        "status": status,
+        "rating": rating,
+        "review": review,
+        "date_started": date_started,
+        "date_completed": date_completed,
+    }
     try:
         client.update_book(book_id, book_data)
         return RedirectResponse(url=f"/books/{url_quote(book_id, safe='')}", status_code=303)
     except httpx.HTTPStatusError as e:
-        book = book_data
-        book["id"] = book_id
+        book_data["id"] = book_id
         return templates.TemplateResponse(
             request,
             "edit_book.html",
             {
-                "book": book,
+                "book": book_data,
                 "status_labels": STATUS_LABELS,
                 "errors": [f"Failed to update book: {e.response.text}"],
             },

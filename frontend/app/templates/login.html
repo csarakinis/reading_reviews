@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Login — Reading Reviews{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4 text-center">
+        <div class="card shadow-sm">
+            <div class="card-body py-5">
+                <i class="bi bi-book-half display-4 text-primary mb-3 d-block"></i>
+                <h2 class="h4 mb-1">Reading Reviews</h2>
+                <p class="text-muted mb-4">Track your reading journey</p>
+                <form action="/login" method="post">
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

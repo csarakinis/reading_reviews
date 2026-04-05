@@ -49,6 +49,18 @@ def client():
         yield c
 
 
+def test_login_page(client):
+    response = client.get("/login")
+    assert response.status_code == 200
+    assert b"Login" in response.content
+
+
+def test_login_submit_redirects(client):
+    response = client.post("/login", follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers["location"] == "/"
+
+
 def test_health_check(client):
     response = client.get("/health")
     assert response.status_code == 200
