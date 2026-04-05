@@ -1,3 +1,13 @@
+# books.py — all CRUD routes for the Book resource.
+#
+# Each "edit" page follows the same pattern:
+#   GET  /books/...  →  fetch data, render template
+#   POST /books/...  →  validate + call backend, then EITHER redirect (success)
+#                        OR re-render the same template with errors (failure)
+#
+# Redirects use status_code=303 (See Other) so the browser issues a GET for
+# the next page. Without 303, hitting browser Back/Refresh would re-submit
+# the form, which usually isn't what you want.
 from urllib.parse import quote as url_quote
 
 import httpx
@@ -25,6 +35,9 @@ def add_book_form(
 @router.post("/books/add")
 def add_book_submit(
     request: Request,
+    # Form(...) means the field is required — FastAPI returns 422 if it's missing.
+    # Form(default="") means the field is optional; an empty string is fine.
+    # The backend schema will coerce empty strings to None where appropriate.
     title: str = Form(...),
     author: str = Form(...),
     genre: str = Form(default=""),
@@ -43,15 +56,18 @@ def add_book_submit(
     }
     try:
         client.create_book(book_data)
+        # Success: redirect to the home page so the user sees their new book.
         return RedirectResponse(url="/", status_code=303)
     except httpx.HTTPStatusError as e:
+        # Failure (e.g. validation error from backend): re-render the form
+        # with the original values pre-filled and an error message shown.
         return templates.TemplateResponse(
             request,
             "add_book.html",
             {
                 "status_labels": STATUS_LABELS,
                 "errors": [f"Failed to add book: {e.response.text}"],
-                "form_data": book_data,
+                "form_data": book_data,  # keeps user's input so they don't retype everything
             },
             status_code=400,
         )
@@ -66,8 +82,11 @@ def book_detail(
     try:
         book = client.get_book(book_id)
     except httpx.HTTPStatusError:
+        # 404 from the backend → show a not-found page.
         return templates.TemplateResponse(request, "404.html", {}, status_code=404)
     except httpx.HTTPError:
+        # Network / timeout error → also show a not-found page (503 would be more accurate,
+        # but keeping it simple for now).
         return templates.TemplateResponse(request, "404.html", {}, status_code=503)
 
     return templates.TemplateResponse(
@@ -125,8 +144,10 @@ def edit_book_submit(
     }
     try:
         client.update_book(book_id, book_data)
+        # url_quote ensures the book_id is safe for use in a URL path.
         return RedirectResponse(url=f"/books/{url_quote(book_id, safe='')}", status_code=303)
     except httpx.HTTPStatusError as e:
+        # Inject book_id back into book_data so the template can build the form action URL.
         book_data["id"] = book_id
         return templates.TemplateResponse(
             request,

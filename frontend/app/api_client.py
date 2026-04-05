@@ -18,13 +18,22 @@ BACKEND_URL = settings.backend_url
 
 
 class APIClient:
-    """HTTP client for communicating with the backend API."""
+    """HTTP client for communicating with the backend API.
+
+    Each public method maps one-to-one to a backend endpoint.
+    The session cookie is forwarded with every request so the backend
+    knows which user is making the call.
+    """
 
     def __init__(self, session_id: str | None = None):
         self._session_id = session_id
+        # Build the cookie jar once at construction time.
         self._cookies = {settings.session_cookie_name: session_id} if session_id else {}
 
     def _get_client(self) -> httpx.Client:
+        # Creates a fresh httpx client for each request.
+        # `with self._get_client() as client:` ensures the connection is
+        # closed cleanly even if an exception occurs.
         return httpx.Client(
             base_url=BACKEND_URL,
             cookies=self._cookies,
@@ -32,24 +41,28 @@ class APIClient:
         )
 
     def get_books(self, status: str | None = None) -> dict[str, Any]:
+        # Optional ?status=... query param lets the backend filter by reading status.
         params = {}
         if status:
             params["status"] = status
         with self._get_client() as client:
             resp = client.get("/api/v1/books/", params=params)
+            # raise_for_status() turns a 4xx/5xx response into an exception.
+            # The calling route handler catches httpx.HTTPStatusError and shows an error page.
             resp.raise_for_status()
             return resp.json()
 
     def get_book(self, book_id: str) -> dict[str, Any]:
         with self._get_client() as client:
             resp = client.get(f"/api/v1/books/{book_id}")
-            resp.raise_for_status()
+            resp.raise_for_status()  # raises HTTPStatusError on 404, etc.
             return resp.json()
 
     def create_book(self, book_data: dict[str, Any]) -> dict[str, Any]:
+        # json= serialises the dict to JSON and sets Content-Type: application/json.
         with self._get_client() as client:
             resp = client.post("/api/v1/books/", json=book_data)
-            resp.raise_for_status()
+            resp.raise_for_status()  # raises on 422 Unprocessable Entity if validation fails
             return resp.json()
 
     def update_book(self, book_id: str, book_data: dict[str, Any]) -> dict[str, Any]:
@@ -70,6 +83,7 @@ class APIClient:
             return resp.json()
 
     def get_me(self) -> dict[str, Any]:
+        """Return the profile for the currently logged-in user."""
         with self._get_client() as client:
             resp = client.get("/api/v1/users/me")
             resp.raise_for_status()

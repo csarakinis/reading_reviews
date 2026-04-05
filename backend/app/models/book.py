@@ -18,6 +18,8 @@ from app.database import Base
 
 
 class ReadingStatus(str, enum.Enum):
+    """Inheriting from str makes the enum JSON-serialisable automatically."""
+
     WANT_TO_READ = "want_to_read"
     READING = "reading"
     COMPLETED = "completed"
@@ -27,7 +29,12 @@ class ReadingStatus(str, enum.Enum):
 class Book(Base):
     __tablename__ = "books"
 
+    # Mapped[T] is the modern SQLAlchemy 2.x way to declare column types.
+    # The Python type hint on the left and the mapped_column() on the right
+    # must agree; SQLAlchemy uses both for type checking and schema generation.
     id: Mapped[str] = mapped_column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    # ForeignKey("users.id") enforces referential integrity at the database level.
+    # index=True creates a database index so lookups by user_id are fast.
     user_id: Mapped[str] = mapped_column(String, ForeignKey("users.id"), index=True)
     title: Mapped[str] = mapped_column(String(500), nullable=False)
     author: Mapped[str] = mapped_column(String(500), nullable=False)
@@ -41,9 +48,14 @@ class Book(Base):
     review: Mapped[str | None] = mapped_column(Text, nullable=True)
     date_started: Mapped[date | None] = mapped_column(Date, nullable=True)
     date_completed: Mapped[date | None] = mapped_column(Date, nullable=True)
+    # server_default=func.now() lets the database set these timestamps so they
+    # are accurate even if multiple app instances are running.
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
+    # relationship() lets you access book.user to get the User object without
+    # writing a JOIN query manually. SQLAlchemy handles the query for you.
+    # back_populates="books" means User.books is the other side of this link.
     user: Mapped["User"] = relationship("User", back_populates="books")

@@ -23,6 +23,17 @@ class Base(DeclarativeBase):
 
 
 def get_db():
+    """FastAPI dependency that provides a database session per request.
+
+    Using `yield` turns this into a context manager: the code before `yield`
+    runs at the start of the request, the session is given to the route, then
+    the code after `yield` (in the finally block) runs after the route returns
+    — whether or not an exception was raised. This guarantees the connection is
+    always returned to the pool.
+
+    Usage in a route:
+        def my_route(db: Session = Depends(get_db)): ...
+    """
     db = SessionLocal()
     try:
         yield db

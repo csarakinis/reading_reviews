@@ -1,4 +1,11 @@
-"""Server-rendered page routes split by feature."""
+"""Server-rendered page routes split by feature.
+
+Each sub-module owns one area of the UI and exposes a single `router` object.
+They are all merged here into one combined router that main.py registers.
+
+Order matters: login is registered first so /login takes precedence over any
+wildcard routes that might be added later.
+"""
 
 from fastapi import APIRouter
 

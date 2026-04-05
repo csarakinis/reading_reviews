@@ -16,6 +16,8 @@ def stats(
     try:
         stats_data = client.get_stats()
     except httpx.HTTPError:
+        # Provide zero-value fallback shapes so the template never crashes on
+        # a missing key, even if the backend is temporarily unavailable.
         stats_data = {
             "total_books": 0,
             "by_status": {},
