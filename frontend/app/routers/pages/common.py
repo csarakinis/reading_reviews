@@ -4,6 +4,8 @@
 from fastapi import Depends, Request
 from fastapi.templating import Jinja2Templates
 
+import httpx
+
 from app.api_client import APIClient
 from app.config import settings
 from app.routers.deps import get_session_id
@@ -17,23 +19,29 @@ STATUS_LABELS = {
     "abandoned": "Abandoned",
 }
 
-# The two fixed session IDs used by the login page.
-# Each maps to a separate user row in the database.
-LOGGED_IN_SESSIONS = {"user-1", "user-2"}
-
 # Jinja2Templates loads .html files from this directory.
 # Call templates.TemplateResponse(request, "file.html", context_dict) in routes.
 templates = Jinja2Templates(directory="app/templates")
 
 
 def is_logged_in(request: Request) -> bool:
-    """Return True if the browser's session cookie belongs to a known user.
+    """Return True if the browser's session cookie maps to a real user in the database.
+
+    Calls GET /api/v1/users/me on the backend, which does the actual DB lookup.
+    Returns False if the cookie is missing, expired, or not found in the database.
 
     Used both as a Python helper (imported by route modules) and as a Jinja2
     global so templates can call {{ is_logged_in(request) }} directly.
     """
     session = request.cookies.get(settings.session_cookie_name, "")
-    return session in LOGGED_IN_SESSIONS
+    if not session:
+        return False
+    try:
+        # A successful response means the backend found a User row for this session.
+        APIClient(session_id=session).get_me()
+        return True
+    except httpx.HTTPError:
+        return False
 
 
 # Register is_logged_in as a global available in every template.

@@ -13,7 +13,7 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.config import settings
-from app.routers.pages.common import LOGGED_IN_SESSIONS, templates
+from app.routers.pages.common import templates
 
 router = APIRouter()
 
@@ -26,10 +26,6 @@ def login_page(request: Request):
 @router.post("/login")
 def login_submit(user_id: str = Form(...)):
     """Set the session cookie to the chosen user and redirect to their book list."""
-    # Only allow the two known user IDs; ignore anything else.
-    if user_id not in LOGGED_IN_SESSIONS:
-        user_id = "user-1"
-
     # Set the cookie directly on the RedirectResponse.
     # (SessionCookieMiddleware only adds cookies created in get_session_id;
     # here we're creating the session ourselves, so we set it manually.)
@@ -49,4 +45,22 @@ def logout():
     """Clear the session cookie and return the user to the landing page."""
     response = RedirectResponse(url="/", status_code=303)
     response.delete_cookie(key=settings.session_cookie_name)
+    return response
+
+@router.get("/register", response_class=HTMLResponse)
+def register_page(request: Request):
+    return templates.TemplateResponse(request, "register.html", {})
+
+@router.post("/register")
+def register_new_user(username: str = Form(...), password: str = Form(...)):
+    """Set the session cookie to a new user ID and redirect to their book list."""
+
+    response = RedirectResponse(url="/register", status_code=303)
+    response.set_cookie(
+        key=settings.session_cookie_name,
+        value=user_id,
+        httponly=True,
+        samesite="lax",
+        max_age=settings.session_cookie_max_age,
+    )
     return response
