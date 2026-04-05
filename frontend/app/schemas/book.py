@@ -1,23 +1,8 @@
-from dataclasses import asdict, dataclass
-from typing import ClassVar
+from dataclasses import dataclass
 
-@dataclass(slots=True)
+
+@dataclass
 class BookData:
-    CREATE_FIELDS: ClassVar[tuple[str, ...]] = (
-        "title",
-        "author",
-        "genre",
-        "isbn",
-        "total_pages",
-        "status",
-    )
-    UPDATE_ONLY_FIELDS: ClassVar[tuple[str, ...]] = (
-        "rating",
-        "review",
-        "date_started",
-        "date_completed",
-    )
-
     title: str
     author: str
     genre: str = ""
@@ -30,13 +15,20 @@ class BookData:
     date_completed: str = ""
 
     def for_create(self) -> dict[str, str]:
-        return self._pick_fields(self.CREATE_FIELDS)
+        return {
+            "title": self.title,
+            "author": self.author,
+            "genre": self.genre,
+            "isbn": self.isbn,
+            "total_pages": self.total_pages,
+            "status": self.status,
+        }
 
     def for_update(self) -> dict[str, str]:
-        payload = self.for_create()
-        payload.update(self._pick_fields(self.UPDATE_ONLY_FIELDS))
-        return payload
-
-    def _pick_fields(self, keys: tuple[str, ...]) -> dict[str, str]:
-        raw = asdict(self)
-        return {key: raw[key] for key in keys}
+        return {
+            **self.for_create(),
+            "rating": self.rating,
+            "review": self.review,
+            "date_started": self.date_started,
+            "date_completed": self.date_completed,
+        }

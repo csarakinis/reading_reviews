@@ -9,9 +9,6 @@ from app.config import settings
 from app.routers import pages_router
 
 
-_SESSION_COOKIE_MAX_AGE = int(60 * 60 * 24 * 365.25)
-
-
 class SessionCookieMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: StarletteRequest, call_next):
         response = await call_next(request)
@@ -22,7 +19,7 @@ class SessionCookieMiddleware(BaseHTTPMiddleware):
                 value=new_session_id,
                 httponly=True,
                 samesite="lax",
-                max_age=_SESSION_COOKIE_MAX_AGE,
+                max_age=settings.session_cookie_max_age,
             )
         return response
 

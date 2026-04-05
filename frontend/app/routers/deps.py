@@ -4,9 +4,6 @@ from fastapi import Cookie, Request
 
 from app.config import settings
 
-# One year expressed in seconds (accounts for leap years)
-_SESSION_COOKIE_MAX_AGE = int(60 * 60 * 24 * 365.25)
-
 
 def get_session_id(
     request: Request,
