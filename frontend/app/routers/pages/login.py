@@ -94,32 +94,3 @@ def logout(request: Request):
     response.delete_cookie(key=settings.session_cookie_name)
     return response
 
-
-def add_book_submit(
-    request: Request,
-    # Form(...) means the field is required — FastAPI returns 422 if it's missing.
-    # Form(default="") means the field is optional; an empty string is fine.
-    # The backend schema will coerce empty strings to None where appropriate.
-    display_name: str = Form(...), 
-    client: APIClient = Depends(make_client),
-):
-    user_data = {
-        "display_name": display_name,
-    }
-    try:
-        client.register_user(user_data)
-        # Success: redirect to the home page so the user sees their new book.
-        return RedirectResponse(url="/", status_code=303)
-    except httpx.HTTPStatusError as e:
-        # Failure (e.g. validation error from backend): re-render the form
-        # with the original values pre-filled and an error message shown.
-        return templates.TemplateResponse(
-            request,
-            "register.html",
-            {
-                "status_labels": STATUS_LABELS,
-                "errors": [f"Failed to register user: {e.response.text}"],
-                "form_data": user_data,  # keeps user's input so they don't retype everything
-            },
-            status_code=400,
-        )

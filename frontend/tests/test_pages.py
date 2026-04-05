@@ -28,7 +28,7 @@ MOCK_BOOKS = {
 
 MOCK_USER = {
     "id": "user-1",
-    "session_id": "test-session",
+    "email": "test@example.com",
     "display_name": "Reader",
     "created_at": "2024-01-01T00:00:00",
     "updated_at": "2024-01-01T00:00:00",
@@ -56,9 +56,16 @@ def test_login_page(client):
 
 
 def test_login_submit_redirects(client):
-    response = client.post("/login", follow_redirects=False)
+    with patch("app.routers.pages.login.APIClient") as MockClient:
+        instance = MockClient.return_value
+        instance.login_user.return_value = {**MOCK_USER, "session_id": "test-session"}
+        response = client.post(
+            "/login",
+            data={"email": "test@example.com"},
+            follow_redirects=False,
+        )
     assert response.status_code == 303
-    assert response.headers["location"] == "/"
+    assert response.headers["location"] == "/books"
 
 
 def test_health_check(client):
@@ -67,23 +74,31 @@ def test_health_check(client):
     assert response.json()["status"] == "ok"
 
 
+def test_book_list_requires_login(client):
+    response = client.get("/books", follow_redirects=False)
+    assert response.status_code == 303
+    assert response.headers["location"] == "/login"
+
+
 def test_index_page(client):
-    with patch("app.routers.pages.common.APIClient") as MockClient:
+    with patch("app.routers.pages.books.is_logged_in", return_value=True), \
+         patch("app.routers.pages.common.APIClient") as MockClient:
         instance = MockClient.return_value
         instance.get_books.return_value = MOCK_BOOKS
         instance.get_me.return_value = MOCK_USER
-        response = client.get("/")
+        response = client.get("/books")
     assert response.status_code == 200
     assert b"Reading Reviews" in response.content
     assert b"Test Book" in response.content
 
 
 def test_index_page_with_status_filter(client):
-    with patch("app.routers.pages.common.APIClient") as MockClient:
+    with patch("app.routers.pages.books.is_logged_in", return_value=True), \
+         patch("app.routers.pages.common.APIClient") as MockClient:
         instance = MockClient.return_value
         instance.get_books.return_value = MOCK_BOOKS
         instance.get_me.return_value = MOCK_USER
-        response = client.get("/?status_filter=reading")
+        response = client.get("/books?status_filter=reading")
     assert response.status_code == 200
     instance.get_books.assert_called_once_with(status="reading")
 
@@ -104,7 +119,7 @@ def test_add_book_submit(client):
             follow_redirects=False,
         )
     assert response.status_code == 303
-    assert response.headers["location"] == "/"
+    assert response.headers["location"] == "/books"
 
 
 def test_book_detail(client):
@@ -133,4 +148,4 @@ def test_delete_book_redirects(client):
         instance.delete_book.return_value = None
         response = client.post("/books/book-1/delete", follow_redirects=False)
     assert response.status_code == 303
-    assert response.headers["location"] == "/"
+    assert response.headers["location"] == "/books"

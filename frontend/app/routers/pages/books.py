@@ -88,8 +88,8 @@ def add_book_submit(
     }
     try:
         client.create_book(book_data)
-        # Success: redirect to the home page so the user sees their new book.
-        return RedirectResponse(url="/", status_code=303)
+        # Success: redirect to the book list so the user sees their new book.
+        return RedirectResponse(url="/books", status_code=303)
     except httpx.HTTPStatusError as e:
         # Failure (e.g. validation error from backend): re-render the form
         # with the original values pre-filled and an error message shown.
@@ -202,4 +202,4 @@ def delete_book(
         client.delete_book(book_id)
     except httpx.HTTPError:
         pass
-    return RedirectResponse(url="/", status_code=303)
+    return RedirectResponse(url="/books", status_code=303)

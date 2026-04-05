@@ -51,3 +51,21 @@ def client(db):
     with TestClient(app, raise_server_exceptions=True) as c:
         yield c
     app.dependency_overrides.clear()
+
+
+@pytest.fixture(scope="function")
+def auth_client(client):
+    """A TestClient pre-authenticated as a test user.
+
+    Registers a user and configures the client's cookie jar so every
+    subsequent request in the test carries a valid session cookie.
+    """
+    resp = client.post(
+        "/api/v1/users/register",
+        json={"email": "fixture@example.com", "display_name": "Fixture User"},
+    )
+    assert resp.status_code == 201
+    session_id = resp.json()["session_id"]
+    client.cookies.set("reading_session", session_id)
+    return client
+
