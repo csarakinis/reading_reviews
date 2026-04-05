@@ -1,80 +1,20 @@
-"""
-routers/pages.py — server-rendered HTML page handlers.
-
-Each route:
-  1. Reads the session cookie via get_session_id (creates one if absent).
-  2. Calls the backend API through APIClient (forwards the cookie).
-  3. Renders a Jinja2 template with the response data.
-
-Adding a new page is three steps:
-  a. Add a route function here.
-  b. Create the matching template in app/templates/.
-  c. Add a nav link to app/templates/base.html if needed.
-
-TODO: add a /profile page for updating display_name.
-TODO: add a /books/search page that calls the (future) search endpoint.
-TODO: add a /books/import page for uploading a CSV reading list.
-"""
 from typing import Any
 from urllib.parse import quote as url_quote
 
 import httpx
-from fastapi import APIRouter, Cookie, Depends, Form, Request, Response
+from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
 
 from app.api_client import APIClient
-from app.config import settings
-from app.routers.deps import get_session_id
+from app.routers.pages.common import STATUS_LABELS, make_client, templates
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
-
-STATUS_LABELS = {
-    "want_to_read": "Want to Read",
-    "reading": "Currently Reading",
-    "completed": "Completed",
-    "abandoned": "Abandoned",
-}
-
-
-def _make_client(session_id: str) -> APIClient:
-    return APIClient(session_id=session_id)
-
-
-@router.get("/", response_class=HTMLResponse)
-def index(
-    request: Request,
-    response: Response,
-    status_filter: str | None = None,
-    session_id: str = Depends(get_session_id),
-):
-    client = _make_client(session_id)
-    try:
-        books_data = client.get_books(status=status_filter)
-        user = client.get_me()
-    except httpx.HTTPError:
-        books_data = {"books": [], "total": 0}
-        user = {"display_name": "Reader"}
-
-    return templates.TemplateResponse(
-        request,
-        "index.html",
-        {
-            "books": books_data["books"],
-            "total": books_data["total"],
-            "status_filter": status_filter,
-            "status_labels": STATUS_LABELS,
-            "user": user,
-        },
-    )
 
 
 @router.get("/books/add", response_class=HTMLResponse)
 def add_book_form(
     request: Request,
-    response: Response,
-    session_id: str = Depends(get_session_id),
+    client: APIClient = Depends(make_client),
 ):
     return templates.TemplateResponse(
         request,
@@ -86,16 +26,14 @@ def add_book_form(
 @router.post("/books/add")
 def add_book_submit(
     request: Request,
-    response: Response,
     title: str = Form(...),
     author: str = Form(...),
     genre: str = Form(default=""),
     isbn: str = Form(default=""),
     total_pages: str = Form(default=""),
     status: str = Form(default="want_to_read"),
-    session_id: str = Depends(get_session_id),
+    client: APIClient = Depends(make_client),
 ):
-    client = _make_client(session_id)
     book_data: dict[str, Any] = {
         "title": title,
         "author": author,
@@ -128,20 +66,14 @@ def add_book_submit(
 def book_detail(
     book_id: str,
     request: Request,
-    response: Response,
-    session_id: str = Depends(get_session_id),
+    client: APIClient = Depends(make_client),
 ):
-    client = _make_client(session_id)
     try:
         book = client.get_book(book_id)
     except httpx.HTTPStatusError:
-        return templates.TemplateResponse(
-            request, "404.html", {}, status_code=404
-        )
+        return templates.TemplateResponse(request, "404.html", {}, status_code=404)
     except httpx.HTTPError:
-        return templates.TemplateResponse(
-            request, "404.html", {}, status_code=503
-        )
+        return templates.TemplateResponse(request, "404.html", {}, status_code=503)
 
     return templates.TemplateResponse(
         request,
@@ -157,16 +89,12 @@ def book_detail(
 def edit_book_form(
     book_id: str,
     request: Request,
-    response: Response,
-    session_id: str = Depends(get_session_id),
+    client: APIClient = Depends(make_client),
 ):
-    client = _make_client(session_id)
     try:
         book = client.get_book(book_id)
     except httpx.HTTPStatusError:
-        return templates.TemplateResponse(
-            request, "404.html", {}, status_code=404
-        )
+        return templates.TemplateResponse(request, "404.html", {}, status_code=404)
 
     return templates.TemplateResponse(
         request,
@@ -183,7 +111,6 @@ def edit_book_form(
 def edit_book_submit(
     book_id: str,
     request: Request,
-    response: Response,
     title: str = Form(...),
     author: str = Form(...),
     genre: str = Form(default=""),
@@ -194,9 +121,8 @@ def edit_book_submit(
     review: str = Form(default=""),
     date_started: str = Form(default=""),
     date_completed: str = Form(default=""),
-    session_id: str = Depends(get_session_id),
+    client: APIClient = Depends(make_client),
 ):
-    client = _make_client(session_id)
     book_data: dict[str, Any] = {
         "title": title,
         "author": author,
@@ -233,41 +159,10 @@ def edit_book_submit(
 @router.post("/books/{book_id}/delete")
 def delete_book(
     book_id: str,
-    request: Request,
-    response: Response,
-    session_id: str = Depends(get_session_id),
+    client: APIClient = Depends(make_client),
 ):
-    client = _make_client(session_id)
     try:
         client.delete_book(book_id)
     except httpx.HTTPError:
         pass
     return RedirectResponse(url="/", status_code=303)
-
-
-@router.get("/stats", response_class=HTMLResponse)
-def stats(
-    request: Request,
-    response: Response,
-    session_id: str = Depends(get_session_id),
-):
-    client = _make_client(session_id)
-    try:
-        stats_data = client.get_stats()
-    except httpx.HTTPError:
-        stats_data = {
-            "total_books": 0,
-            "by_status": {},
-            "average_rating": None,
-            "top_genres": [],
-            "books_completed_per_month": [],
-        }
-
-    return templates.TemplateResponse(
-        request,
-        "stats.html",
-        {
-            "stats": stats_data,
-            "status_labels": STATUS_LABELS,
-        },
-    )

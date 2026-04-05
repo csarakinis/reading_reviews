@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from app.main import app
 
@@ -56,7 +56,7 @@ def test_health_check(client):
 
 
 def test_index_page(client):
-    with patch("app.routers.pages.APIClient") as MockClient:
+    with patch("app.routers.pages.common.APIClient") as MockClient:
         instance = MockClient.return_value
         instance.get_books.return_value = MOCK_BOOKS
         instance.get_me.return_value = MOCK_USER
@@ -67,7 +67,7 @@ def test_index_page(client):
 
 
 def test_index_page_with_status_filter(client):
-    with patch("app.routers.pages.APIClient") as MockClient:
+    with patch("app.routers.pages.common.APIClient") as MockClient:
         instance = MockClient.return_value
         instance.get_books.return_value = MOCK_BOOKS
         instance.get_me.return_value = MOCK_USER
@@ -83,7 +83,7 @@ def test_add_book_form(client):
 
 
 def test_add_book_submit(client):
-    with patch("app.routers.pages.APIClient") as MockClient:
+    with patch("app.routers.pages.common.APIClient") as MockClient:
         instance = MockClient.return_value
         instance.create_book.return_value = {**MOCK_BOOKS["books"][0]}
         response = client.post(
@@ -97,7 +97,7 @@ def test_add_book_submit(client):
 
 def test_book_detail(client):
     book = MOCK_BOOKS["books"][0]
-    with patch("app.routers.pages.APIClient") as MockClient:
+    with patch("app.routers.pages.common.APIClient") as MockClient:
         instance = MockClient.return_value
         instance.get_book.return_value = book
         response = client.get(f"/books/{book['id']}")
@@ -107,7 +107,7 @@ def test_book_detail(client):
 
 
 def test_stats_page(client):
-    with patch("app.routers.pages.APIClient") as MockClient:
+    with patch("app.routers.pages.common.APIClient") as MockClient:
         instance = MockClient.return_value
         instance.get_stats.return_value = MOCK_STATS
         response = client.get("/stats")
@@ -116,7 +116,7 @@ def test_stats_page(client):
 
 
 def test_delete_book_redirects(client):
-    with patch("app.routers.pages.APIClient") as MockClient:
+    with patch("app.routers.pages.common.APIClient") as MockClient:
         instance = MockClient.return_value
         instance.delete_book.return_value = None
         response = client.post("/books/book-1/delete", follow_redirects=False)
