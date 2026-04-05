@@ -2,30 +2,41 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from testcontainers.postgres import PostgresContainer
 
+import app.database as db_module
 from app.database import Base, get_db
 from app.main import app
 
-TEST_DATABASE_URL = "sqlite:///:memory:"
+POSTGRES_IMAGE = "postgres:16-alpine"
 
-engine = create_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
-)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+@pytest.fixture(scope="session")
+def postgres_container():
+    with PostgresContainer(POSTGRES_IMAGE) as postgres:
+        yield postgres
+
+
+@pytest.fixture(scope="session", autouse=True)
+def patch_app_engine(postgres_container):
+    """Redirect the module-level engine (used by lifespan create_all) to the
+    testcontainer so no connection to the Docker Compose 'db' host is needed."""
+    engine = create_engine(postgres_container.get_connection_url())
+    db_module.engine = engine
+    db_module.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    yield engine
+    engine.dispose()
 
 
 @pytest.fixture(scope="function")
-def db():
-    Base.metadata.create_all(bind=engine)
-    db = TestingSessionLocal()
+def db(patch_app_engine):
+    Base.metadata.create_all(bind=patch_app_engine)
+    session = sessionmaker(autocommit=False, autoflush=False, bind=patch_app_engine)()
     try:
-        yield db
+        yield session
     finally:
-        db.close()
-        Base.metadata.drop_all(bind=engine)
+        session.close()
+        Base.metadata.drop_all(bind=patch_app_engine)
 
 
 @pytest.fixture(scope="function")
