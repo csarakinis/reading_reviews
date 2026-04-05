@@ -11,11 +11,11 @@
 {# Status filter tabs #}
 <ul class="nav nav-tabs mb-4">
     <li class="nav-item">
-        <a class="nav-link {% if not status_filter %}active{% endif %}" href="/">All ({{ total }})</a>
+        <a class="nav-link {% if not status_filter %}active{% endif %}" href="/books">All ({{ total }})</a>
     </li>
     {% for key, label in status_labels.items() %}
     <li class="nav-item">
-        <a class="nav-link {% if status_filter == key %}active{% endif %}" href="/?status_filter={{ key }}">
+        <a class="nav-link {% if status_filter == key %}active{% endif %}" href="/books?status_filter={{ key }}">
             {{ label }}
         </a>
     </li>

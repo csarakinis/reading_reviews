@@ -1,16 +1,19 @@
-# login.py — stub login page.
+# login.py — user selection and logout.
 #
-# Currently this is just a placeholder. The session (and user row in the
-# database) are already created automatically on the first request via
-# get_session_id() + get_current_user(). To add real authentication:
-#   1. Collect credentials in login.html (username + password, or OAuth).
-#   2. Verify them in login_submit().
-#   3. Store the authenticated user's ID in the session.
-#   4. Guard protected routes by checking the session in get_session_id().
-from fastapi import APIRouter, Request
+# Authentication here is a two-user POC: clicking "User 1" or "User 2" sets
+# a fixed session cookie ("user-1" or "user-2"). The backend auto-creates a
+# User row for each session ID the first time it sees it, so each user gets
+# their own separate book list.
+#
+# To upgrade to real auth later:
+#   1. Replace the two buttons with a username/password form.
+#   2. Verify credentials in login_submit() and only set the cookie on success.
+#   3. Use a UUID or opaque token as the cookie value instead of "user-1" etc.
+from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
-from app.routers.pages.common import templates
+from app.config import settings
+from app.routers.pages.common import LOGGED_IN_SESSIONS, templates
 
 router = APIRouter()
 
@@ -21,8 +24,29 @@ def login_page(request: Request):
 
 
 @router.post("/login")
-def login_submit():
-    # POC: session is created automatically on first request.
-    # Replace this handler with real authentication when ready.
-    # 303 See Other tells the browser to follow the redirect with a GET request.
-    return RedirectResponse(url="/", status_code=303)
+def login_submit(user_id: str = Form(...)):
+    """Set the session cookie to the chosen user and redirect to their book list."""
+    # Only allow the two known user IDs; ignore anything else.
+    if user_id not in LOGGED_IN_SESSIONS:
+        user_id = "user-1"
+
+    # Set the cookie directly on the RedirectResponse.
+    # (SessionCookieMiddleware only adds cookies created in get_session_id;
+    # here we're creating the session ourselves, so we set it manually.)
+    response = RedirectResponse(url="/books", status_code=303)
+    response.set_cookie(
+        key=settings.session_cookie_name,
+        value=user_id,
+        httponly=True,
+        samesite="lax",
+        max_age=settings.session_cookie_max_age,
+    )
+    return response
+
+
+@router.get("/logout")
+def logout():
+    """Clear the session cookie and return the user to the landing page."""
+    response = RedirectResponse(url="/", status_code=303)
+    response.delete_cookie(key=settings.session_cookie_name)
+    return response

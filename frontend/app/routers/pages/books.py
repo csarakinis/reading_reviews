@@ -15,9 +15,41 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.api_client import APIClient
-from app.routers.pages.common import STATUS_LABELS, make_client, templates
+from app.routers.pages.common import STATUS_LABELS, is_logged_in, make_client, templates
 
 router = APIRouter()
+
+
+@router.get("/books", response_class=HTMLResponse)
+def book_list(
+    request: Request,
+    # Optional query parameter: /books?status_filter=reading shows only that status.
+    status_filter: str | None = None,
+    client: APIClient = Depends(make_client),
+):
+    # Guard: if the user hasn't selected a profile yet, send them to the login page.
+    if not is_logged_in(request):
+        return RedirectResponse(url="/login", status_code=303)
+
+    try:
+        books_data = client.get_books(status=status_filter)
+        user = client.get_me()
+    except httpx.HTTPError:
+        # If the backend is unreachable, show an empty list rather than a crash page.
+        books_data = {"books": [], "total": 0}
+        user = {"display_name": "Reader"}
+
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        {
+            "books": books_data["books"],
+            "total": books_data["total"],
+            "status_filter": status_filter,  # sent back so the template can highlight the active tab
+            "status_labels": STATUS_LABELS,
+            "user": user,
+        },
+    )
 
 
 @router.get("/books/add", response_class=HTMLResponse)
