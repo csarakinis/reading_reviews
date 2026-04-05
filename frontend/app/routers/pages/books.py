@@ -1,12 +1,13 @@
-from typing import Any
 from urllib.parse import quote as url_quote
 
 import httpx
-from fastapi import APIRouter, Depends, Form, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 
 from app.api_client import APIClient
+from app.routers.pages.deps import parse_create_book_form, parse_update_book_form
 from app.routers.pages.common import STATUS_LABELS, make_client, templates
+from app.schemas import BookData
 
 router = APIRouter()
 
@@ -26,25 +27,10 @@ def add_book_form(
 @router.post("/books/add")
 def add_book_submit(
     request: Request,
-    title: str = Form(...),
-    author: str = Form(...),
-    genre: str = Form(default=""),
-    isbn: str = Form(default=""),
-    total_pages: str = Form(default=""),
-    status: str = Form(default="want_to_read"),
+    book: BookData = Depends(parse_create_book_form),
     client: APIClient = Depends(make_client),
 ):
-    book_data: dict[str, Any] = {
-        "title": title,
-        "author": author,
-        "status": status,
-    }
-    if genre:
-        book_data["genre"] = genre
-    if isbn:
-        book_data["isbn"] = isbn
-    if total_pages.isdigit():
-        book_data["total_pages"] = int(total_pages)
+    book_data = book.for_create()
 
     try:
         client.create_book(book_data)
@@ -111,32 +97,10 @@ def edit_book_form(
 def edit_book_submit(
     book_id: str,
     request: Request,
-    title: str = Form(...),
-    author: str = Form(...),
-    genre: str = Form(default=""),
-    isbn: str = Form(default=""),
-    total_pages: str = Form(default=""),
-    status: str = Form(default="want_to_read"),
-    rating: str = Form(default=""),
-    review: str = Form(default=""),
-    date_started: str = Form(default=""),
-    date_completed: str = Form(default=""),
+    book: BookData = Depends(parse_update_book_form),
     client: APIClient = Depends(make_client),
 ):
-    book_data: dict[str, Any] = {
-        "title": title,
-        "author": author,
-        "status": status,
-        "genre": genre or None,
-        "isbn": isbn or None,
-        "review": review or None,
-        "date_started": date_started or None,
-        "date_completed": date_completed or None,
-    }
-    if total_pages.isdigit():
-        book_data["total_pages"] = int(total_pages)
-    if rating.isdigit() and 1 <= int(rating) <= 5:
-        book_data["rating"] = int(rating)
+    book_data = book.for_update()
 
     try:
         client.update_book(book_id, book_data)

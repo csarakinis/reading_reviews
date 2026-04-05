@@ -79,6 +79,62 @@ def test_rating_validation(client):
     assert response.status_code == 422
 
 
+def test_create_book_accepts_optional_empty_strings(client):
+    response = client.post(
+        "/api/v1/books/",
+        json={
+            "title": "With Optional Fields",
+            "author": "Reader",
+            "genre": "",
+            "isbn": "",
+            "total_pages": "",
+            "status": "want_to_read",
+        },
+    )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["genre"] is None
+    assert data["isbn"] is None
+    assert data["total_pages"] is None
+
+
+def test_update_book_accepts_string_numbers_and_empty_optionals(client):
+    create_resp = client.post("/api/v1/books/", json=SAMPLE_BOOK)
+    book_id = create_resp.json()["id"]
+
+    response = client.put(
+        f"/api/v1/books/{book_id}",
+        json={
+            "total_pages": "250",
+            "rating": "4",
+            "review": "",
+            "date_started": "2024-01-01",
+            "date_completed": "",
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["total_pages"] == 250
+    assert data["rating"] == 4
+    assert data["review"] is None
+    assert data["date_started"] == "2024-01-01"
+    assert data["date_completed"] is None
+
+
+def test_update_book_rejects_completion_before_start(client):
+    create_resp = client.post("/api/v1/books/", json=SAMPLE_BOOK)
+    book_id = create_resp.json()["id"]
+
+    response = client.put(
+        f"/api/v1/books/{book_id}",
+        json={
+            "date_started": "2024-02-01",
+            "date_completed": "2024-01-01",
+        },
+    )
+    assert response.status_code == 422
+
+
 def test_delete_book(client):
     create_resp = client.post("/api/v1/books/", json=SAMPLE_BOOK)
     book_id = create_resp.json()["id"]
