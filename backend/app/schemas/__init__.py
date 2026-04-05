@@ -1,11 +1,12 @@
-from app.schemas.user import UserBase, UserCreate, UserUpdate, UserResponse
+from app.schemas.user import UserRegisterRequest, UserLoginRequest, UserUpdate, UserResponse, UserAuthResponse
 from app.schemas.book import BookBase, BookCreate, BookUpdate, BookResponse, BookListResponse
 
 __all__ = [
-    "UserBase",
-    "UserCreate",
+    "UserRegisterRequest",
+    "UserLoginRequest",
     "UserUpdate",
     "UserResponse",
+    "UserAuthResponse",
     "BookBase",
     "BookCreate",
     "BookUpdate",

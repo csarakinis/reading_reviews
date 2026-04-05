@@ -1,15 +1,16 @@
 {% extends "base.html" %}
 
-{% block title %}Add Book{% endblock %}
+{% block title %}Register — Reading Reviews{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
-        <div class="card">
-            <div class="card-header bg-white">
-                <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Register as a new user</h4>
-            </div>
-            <div class="card-body">
+<div class="row justify-content-center mt-5">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body py-5 px-4">
+                <i class="bi bi-person-plus display-4 text-primary mb-3 d-block text-center"></i>
+                <h2 class="h4 mb-1 text-center">Create an account</h2>
+                <p class="text-muted text-center mb-4">You'll get your own private reading list.</p>
+
                 {% if errors %}
                 <div class="alert alert-danger">
                     {% for error in errors %}<p class="mb-0">{{ error }}</p>{% endfor %}
@@ -18,22 +19,40 @@
 
                 <form action="/register" method="post">
                     <div class="mb-3">
-                        <label for="username" class="form-label fw-semibold">User Name / Email <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="username" name="username"
-                               value="{{ form_data.username if form_data else '' }}" required>
+                        <label for="email" class="form-label fw-semibold">Email address <span class="text-danger">*</span></label>
+                        <input
+                            type="email"
+                            class="form-control"
+                            id="email"
+                            name="email"
+                            value="{{ email | default('') }}"
+                            required
+                            autofocus
+                        >
                     </div>
                     <div class="mb-3">
-                        <label for="password" class="form-label fw-semibold">Password <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="password" name="password"
-                               value="{{ form_data.password if form_data else '' }}" required>
+                        <label for="display_name" class="form-label fw-semibold">Display name</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="display_name"
+                            name="display_name"
+                            placeholder="e.g. Alice"
+                            value="{{ display_name | default('') }}"
+                            maxlength="100"
+                        >
+                        <div class="form-text">Shown in the navbar. Optional — can be changed later.</div>
                     </div>
-                    <div class="d-flex justify-content-between mt-3">
-                        <a href="/" class="btn btn-outline-secondary">Cancel</a>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-plus-lg me-1"></i>Register
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-person-check me-2"></i>Create account
                         </button>
                     </div>
                 </form>
+                <hr class="my-4">
+                <p class="text-center text-muted small mb-0">
+                    Already have an account? <a href="/login">Sign in</a>
+                </p>
             </div>
         </div>
     </div>

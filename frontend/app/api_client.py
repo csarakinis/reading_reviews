@@ -94,3 +94,23 @@ class APIClient:
             resp = client.put("/api/v1/users/me", json=user_data)
             resp.raise_for_status()
             return resp.json()
+
+    def register_user(self, email: str, display_name: str = "Reader") -> dict[str, Any]:
+        """Create a new account. Returns the user dict including the server-generated session_id."""
+        with self._get_client() as client:
+            resp = client.post("/api/v1/users/register", json={"email": email, "display_name": display_name})
+            resp.raise_for_status()
+            return resp.json()
+
+    def login_user(self, email: str) -> dict[str, Any]:
+        """Log in with an email. Returns the user dict including the session_id cookie value."""
+        with self._get_client() as client:
+            resp = client.post("/api/v1/users/login", json={"email": email})
+            resp.raise_for_status()
+            return resp.json()
+
+    def logout(self) -> None:
+        """Invalidate the current session in the database."""
+        with self._get_client() as client:
+            resp = client.post("/api/v1/users/logout")
+            resp.raise_for_status()
