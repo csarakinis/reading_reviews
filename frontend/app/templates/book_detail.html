@@ -6,7 +6,7 @@
 <div class="row justify-content-center">
     <div class="col-md-8">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <a href="/" class="btn btn-outline-secondary btn-sm">
+            <a href="/books" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left me-1"></i>Back to List
             </a>
             <div>
@@ -24,13 +24,22 @@
 
         <div class="card">
             <div class="card-body p-4">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <h2 class="mb-0">{{ book.title }}</h2>
-                    <span class="badge badge-{{ book.status }} ms-3 fs-6">
-                        {{ status_labels[book.status] }}
-                    </span>
+                <div class="d-flex gap-4 mb-4">
+                    {% if book.cover_url %}
+                    <img src="{{ book.cover_url }}" alt="Cover for {{ book.title }}"
+                         class="rounded flex-shrink-0" style="width:120px;height:180px;object-fit:cover;"
+                         onerror="this.style.display='none'">
+                    {% endif %}
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h2 class="mb-0">{{ book.title }}</h2>
+                            <span class="badge badge-{{ book.status }} ms-3 fs-6">
+                                {{ status_labels[book.status] }}
+                            </span>
+                        </div>
+                        <h5 class="text-muted mb-0">by {{ book.author }}</h5>
+                    </div>
                 </div>
-                <h5 class="text-muted mb-4">by {{ book.author }}</h5>
 
                 <div class="row g-3 mb-4">
                     {% if book.genre %}

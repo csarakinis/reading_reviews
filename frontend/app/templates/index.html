@@ -27,6 +27,11 @@
     {% for book in books %}
     <div class="col">
         <div class="card h-100">
+            {% if book.cover_url %}
+            <img src="{{ book.cover_url }}" alt="Cover for {{ book.title }}"
+                 class="card-img-top" style="height:180px;object-fit:cover;"
+                 onerror="this.style.display='none'">
+            {% endif %}
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <h5 class="card-title mb-0">

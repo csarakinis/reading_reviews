@@ -16,6 +16,20 @@
                 </div>
                 {% endif %}
 
+                <!-- OpenLibrary search — fills the form fields below when the user picks a result -->
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">Search OpenLibrary</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="ol-search-query"
+                               placeholder="Search by title or author…">
+                        <button class="btn btn-outline-primary" type="button" id="ol-search-btn">
+                            <i class="bi bi-search me-1"></i>Search
+                        </button>
+                    </div>
+                    <div id="ol-results" class="mt-3" style="display:none;"></div>
+                </div>
+                <hr class="mb-4">
+
                 <form action="/books/add" method="post">
                     <div class="mb-3">
                         <label for="title" class="form-label fw-semibold">Title <span class="text-danger">*</span></label>
@@ -57,8 +71,9 @@
                             </select>
                         </div>
                     </div>
+                    <input type="hidden" name="cover_url" id="cover_url">
                     <div class="d-flex justify-content-between mt-3">
-                        <a href="/" class="btn btn-outline-secondary">Cancel</a>
+                        <a href="/books" class="btn btn-outline-secondary">Cancel</a>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-plus-lg me-1"></i>Add Book
                         </button>

@@ -81,6 +81,12 @@ class APIClient:
             resp = client.get("/api/v1/books/stats")
             resp.raise_for_status()
             return resp.json()
+    
+    def search_open_library(self, query: str) -> list[dict[str, Any]]:
+        with self._get_client() as client:
+            resp = client.get("/api/v1/books/search-ol", params={"q": query})
+            resp.raise_for_status()
+            return resp.json()
 
     def get_me(self) -> dict[str, Any]:
         """Return the profile for the currently logged-in user."""

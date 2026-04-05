@@ -11,8 +11,8 @@
 from urllib.parse import quote as url_quote
 
 import httpx
-from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Depends, Form, Request, Query
+from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 
 from app.api_client import APIClient
 from app.routers.pages.common import STATUS_LABELS, is_logged_in, make_client, templates
@@ -76,6 +76,7 @@ def add_book_submit(
     isbn: str = Form(default=""),
     total_pages: str = Form(default=""),
     status: str = Form(default="want_to_read"),
+    cover_url: str = Form(default=""),
     client: APIClient = Depends(make_client),
 ):
     book_data = {
@@ -84,6 +85,7 @@ def add_book_submit(
         "genre": genre,
         "isbn": isbn,
         "total_pages": total_pages,
+        "cover_url": cover_url,
         "status": status,
     }
     try:
@@ -104,6 +106,19 @@ def add_book_submit(
             status_code=400,
         )
 
+@router.get("/books/search-ol", response_class=JSONResponse)
+def search_open_library(
+    request: Request,
+    q: str = Query(..., min_length=3),
+    client: APIClient = Depends(make_client),
+):
+    if not is_logged_in(request):
+        return JSONResponse({"error":"not Authenticated"}, status_code=401)
+    try:
+        results = client.search_open_library(q)
+    except httpx.HTTPError:
+        results = []
+    return JSONResponse(results)
 
 @router.get("/books/{book_id}", response_class=HTMLResponse)
 def book_detail(

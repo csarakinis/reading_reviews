@@ -19,6 +19,7 @@ polars = "1.17.1"
 python-multipart = "0.0.22"
 itsdangerous = "2.2.0"
 starlette = "0.49.1"
+httpx = "0.28.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "8.3.4"

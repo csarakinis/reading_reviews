@@ -119,4 +119,5 @@ class OLSearchResult(BaseModel):
     author: str
     isbn: str | None = None
     total_pages: int | None = None
+    genre: str | None = None
     cover_url: str | None = None

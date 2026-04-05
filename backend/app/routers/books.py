@@ -20,7 +20,7 @@ TODO: add GET /api/v1/books/export for CSV download using Polars.
 """
 import httpx
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -36,7 +36,7 @@ router = APIRouter(prefix="/books", tags=["books"])
 @router.get("/search-ol", response_model=list[OLSearchResult])
 def search_open_library(
     q: str = Query(..., min_length=3, max_length=100),
-    current_user: User = Depends(get_current_user),
+    # current_user: User = Depends(get_current_user),
 ):
     """Search Open Library API for books matching the query string."""
         
@@ -50,7 +50,7 @@ def search_open_library(
                 OL_SEARCH_URL,
                 params={
                     "q": q,
-                    "fields": "title,author_name,cover_i,isbn,number_of_pages_median",
+                    "fields": "title,author_name,cover_i,isbn,number_of_pages_median,subject",
                     "limit": "10",
                 },
                 headers=OL_HEADERS,
@@ -64,12 +64,14 @@ def search_open_library(
         cover_i = doc.get("cover_i")
         isbn_list = doc.get("isbn", [])
         author_list = doc.get("author_name", [])
+        subject_list = doc.get("subject", [])
         results.append(OLSearchResult(
             title=doc.get("title", "Unknown"),
             author=author_list[0] if author_list else "Unknown",
             isbn=isbn_list[0] if isbn_list else None,
             total_pages=doc.get("number_of_pages_median"),
-            cover_url=f"https://covers.openlibrary.org/b/id/{cover_i}-M.jpg" if cover_i else None,
+            genre=subject_list[0] if subject_list else None,
+            cover_url=f"https://covers.openlibrary.org/b/id/{cover_i}-M.jpg?default=false" if cover_i else None,
         ))
     return results
 
