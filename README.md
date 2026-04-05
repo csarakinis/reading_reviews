@@ -27,7 +27,13 @@ A Python application for tracking your reading list. Built with FastAPI, Postgre
 
 ### Run
 
+**Bash**
 ```bash
+docker compose up --build
+```
+
+**PowerShell**
+```powershell
 docker compose up --build
 ```
 
@@ -37,13 +43,25 @@ The backend API (with auto-generated docs) is available at **http://localhost:80
 
 ### Stop
 
+**Bash**
 ```bash
+docker compose down
+```
+
+**PowerShell**
+```powershell
 docker compose down
 ```
 
 To also remove the database volume:
 
+**Bash**
 ```bash
+docker compose down -v
+```
+
+**PowerShell**
+```powershell
 docker compose down -v
 ```
 
@@ -53,25 +71,49 @@ docker compose down -v
 
 Both services use [Poetry](https://python-poetry.org/) for dependency management.
 
+**Bash**
 ```bash
 # Install backend dependencies
 cd backend
 poetry install
 
 # Install frontend dependencies
-cd frontend
+cd ../frontend
+poetry install
+```
+
+**PowerShell**
+```powershell
+# Install backend dependencies
+Set-Location backend
+poetry install
+
+# Install frontend dependencies
+Set-Location ..\frontend
 poetry install
 ```
 
 ### Run Tests
 
+**Bash**
 ```bash
 # Backend tests
 cd backend
 poetry run pytest tests/ -v
 
 # Frontend tests
-cd frontend
+cd ../frontend
+poetry run pytest tests/ -v
+```
+
+**PowerShell**
+```powershell
+# Backend tests
+Set-Location backend
+poetry run pytest tests/ -v
+
+# Frontend tests
+Set-Location ..\frontend
 poetry run pytest tests/ -v
 ```
 
@@ -85,6 +127,7 @@ poetry run pytest tests/ -v
 
 Create a `.env` file in the project root to override defaults:
 
+**Bash / PowerShell**
 ```env
 SECRET_KEY=your-super-secret-key
 ```
